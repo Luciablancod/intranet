@@ -7,6 +7,8 @@ import buildingsRouter from './routes/building.routes'
 import eventRouter from './routes/event.routes'
 import eventDateRouter from './routes/event_date.routes'
 import eventLogRouter from './routes/event_logs.routes';
+import authRoutes from './routes/auth.routes';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,12 +19,17 @@ app.get("/", (req,res) => {
 
 app.use(cors());
 app.use(express.json())
+app.use(cookieParser())
+
+app.use((req, res) => {})
+
 app.use('/api/v1/rooms' , roomsRouter)
 app.use('/api/v1/users' , usersRouter)
 app.use('/api/v1/buildings', buildingsRouter)
 app.use('/api/v1/events', eventRouter)
 app.use('/api/v1/date', eventDateRouter)
 app.use('/api/v1/logs', eventLogRouter)
+app.use('/api/v1/', authRoutes)
 
 const main = async () =>{
     try{

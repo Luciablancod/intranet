@@ -11,9 +11,25 @@ export class UserService {
         return await models.User.findByPk(id);
     }
 
-    async findBy(field: string, value: any) {
-        return await models.User.findOne({ where: { [field]: value } });
+    async findByUsername(value: string) {
+        try {
+            if(!value ) return null;
+            const user = await models.User.findOne({
+                where: { login_usuario: value.trim() } 
+            });
+    
+            if (!user) {
+                console.warn(`User not found for username: ${value}`);
+            }
+    
+            return user;
+
+        } catch (error) {
+            console.error(`Error finding user:`, error);
+            throw new Error("Database query failed");
+        }
     }
+    
     
     async create(data: any) {
         return await models.User.create(data);
@@ -33,16 +49,16 @@ export class UserService {
     }
 
     async validatePassword(text: string, user: any): Promise<boolean>{
-        if(user.login_contrasenia.length === 32){
-          if(md5(text) === user.login_contrasenia){
-            const hashedPass = await bcrypt.hash(text, 10);
-            await user.update({login_contrasenia: hashedPass});
+        if(user.login_contrasenia.length === 32){ //si es una contraseña hasheada con md5
+          if(md5(text) === user.login_contrasenia){ //y coincide con la contraseña de la db
+            const hashedPass = await bcrypt.hash(text, 10); //entonces hashea con bcrypt
+            await user.update({login_contrasenia: hashedPass}); //la guarda en db
 
             console.log(`Password for ${user.login_usuario} has been rehashed to bcrypt.`);
             return true;
           }
           return false;
         }
-        return await bcrypt.compare(text, user.login_contrasenia);
+        return await bcrypt.compare(text, user.login_contrasenia); //si no es md5 compara con bcrypt
     }
 }

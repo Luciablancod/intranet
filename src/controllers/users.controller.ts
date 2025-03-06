@@ -30,8 +30,21 @@ export class UserController {
 
   static async create(req: Request, res: Response) {
     try {
-      const newUser = await userService.create(req.body);
-      res.status(201).json(newUser);
+      const { login_usuario, login_contrasenia } = req.body;
+  
+      const existingUser = await userService.findByUsername(login_usuario);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+  
+      const hashedPassword = await bcrypt.hash(login_contrasenia, 10);
+  
+      const newUser = await userService.create({
+        login_usuario,
+        login_contrasenia: hashedPassword,
+      });
+  
+      res.status(201).json({ message: "User registered successfully", user: newUser });
     } catch (error) {
       res.status(500).json({ message: "Internal Server Error", error: (error as Error).message });
     }
